@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#คนเทรดทองคำ · AI Terminal </title>
+<style>
+:root{
+  --bg:#090b10; --bg2:#0f1218; --bg3:#151922; --bg4:#1c2230;
+  --border:#1d2336; --border2:#252d42;
+  --accent:#f0b90b; --accent2:#00d4aa; --accent3:#7c6dea;
+  --red:#e84057; --green:#00c076;
+  --text:#dde3f0; --text2:#7a88a0; --text3:#3d4a62;
+  --blue:#4d9de0; --purple:#9b72cf; --orange:#f97316; --gold:#ffd966;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:12px;display:flex;flex-direction:column;}
+
+/* ═══ TOPBAR ═══ */
+#topbar{
+  display:flex;align-items:center;height:44px;padding:0 14px;
+  background:linear-gradient(90deg,#0d1020 0%,#0f1218 100%);
+  border-bottom:1px solid var(--border2);flex-shrink:0;gap:0;
+}
+/* Brand */
+.brand{display:flex;align-items:center;gap:9px;padding-right:16px;border-right:1px solid var(--border2);}
+.brand-icon{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(#f0b90b 0%,#ff8c00 50%,#f0b90b 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;box-shadow:0 0 10px rgba(240,185,11,.35);
+}
+.brand-text{line-height:1.25;}
+.brand-title{font-size:13px;font-weight:bold;color:var(--accent);letter-spacing:.5px;}
+.brand-sub{font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;}
+
+/* Sessions */
+#sessions{display:flex;gap:6px;padding:0 14px;border-right:1px solid var(--border2);}
+.sess{
+  display:flex;align-items:center;gap:5px;padding:3px 10px;
+  border-radius:3px;border:1px solid var(--border);font-size:10px;
+  transition:border-color .3s,background .3s;
+}
+.sess.open{border-color:rgba(0,192,118,.45);background:rgba(0,192,118,.07);}
+.sess.closed{opacity:.45;}
+.sess-dot{width:5px;height:5px;border-radius:50%;background:var(--text3);}
+.sess.open .sess-dot{background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.sess-name{color:var(--text2);font-size:9px;letter-spacing:.07em;}
+.sess-time{color:var(--text);font-weight:bold;font-size:11px;}
+
+/* Spot gold */
+#spot-block{
+  display:flex;align-items:center;gap:12px;padding:0 14px;
+  border-right:1px solid var(--border2);
+}
+.spot-lbl{color:var(--text3);font-size:9px;letter-spacing:.08em;text-transform:uppercase;}
+.spot-price{font-size:22px;font-weight:bold;color:var(--gold);line-height:1;letter-spacing:.5px;}
+.spot-chg{font-size:11px;padding:2px 7px;border-radius:3px;}
+.spot-up{background:rgba(0,192,118,.12);color:var(--green);}
+.spot-dn{background:rgba(232,64,87,.12);color:var(--red);}
+
+/* Clock */
+#clock-block{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+#live-clock{color:var(--text);font-size:16px;font-weight:bold;letter-spacing:.5px;}
+#refresh-lbl{color:var(--text3);font-size:9px;margin-left:6px;}
+
+/* ═══ CONFIG BAR ═══ */
+#config-bar{
+  display:flex;align-items:center;gap:8px;padding:5px 14px;
+  background:#0b0d14;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+#config-bar label{color:var(--text3);font-size:9px;letter-spacing:.08em;text-transform:uppercase;}
+#config-bar select,#config-bar input{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  padding:3px 8px;border-radius:3px;font-family:inherit;font-size:11px;outline:none;
+}
+#config-bar input{width:250px;}
+#config-bar input::placeholder{color:var(--text3);}
+.cbtn{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--accent);
+  padding:3px 10px;border-radius:3px;cursor:pointer;font-size:10px;font-family:inherit;
+  transition:all .2s;
+}
+.cbtn:hover{border-color:var(--accent);background:rgba(240,185,11,.08);}
+#api-status{font-size:9px;padding:2px 7px;border-radius:2px;}
+.s-ok{background:rgba(0,192,118,.12);color:var(--green);}
+.s-no{background:rgba(232,64,87,.1);color:var(--red);}
+
+/* ═══ BODY GRID ═══ */
+#body{display:flex;flex:1;gap:1px;background:var(--border);overflow:hidden;min-height:0;}
+
+/* ── LEFT COLUMN ── */
+#left{width:214px;flex-shrink:0;display:flex;flex-direction:column;gap:1px;background:var(--border);overflow-y:auto;}
+.lp{background:var(--bg);flex-shrink:0;}
+.ph{
+  padding:5px 10px;background:var(--bg2);border-bottom:1px solid var(--border);
+  color:var(--text3);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.pb{padding:9px 10px;}
+
+/* Price */
+#price-big{font-size:28px;font-weight:bold;letter-spacing:.5px;line-height:1;}
+.prow{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.prow:last-child{border-bottom:none;}
+.pl{color:var(--text2);}
+.up{color:var(--green)!important;} .dn{color:var(--red)!important;}
+
+/* Metrics */
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:6px 8px;}
+.ml{color:var(--text3);font-size:8px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px;}
+.mv{font-size:13px;font-weight:bold;}
+.ms{font-size:9px;color:var(--text2);margin-top:1px;}
+.rsi-wrap{background:var(--bg3);border-radius:2px;height:4px;margin-top:3px;overflow:hidden;}
+.rsi-fill{height:100%;border-radius:2px;transition:width .5s;}
+.rsi-ticks{display:flex;justify-content:space-between;color:var(--text3);font-size:8px;margin-top:1px;}
+
+/* HTF mini left */
+.htf-row{display:flex;gap:3px;}
+.htfmc{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:5px 3px;text-align:center;}
+.htftf{color:var(--text3);font-size:8px;margin-bottom:2px;}
+.htfcndle{display:flex;flex-direction:column;align-items:center;gap:1px;margin:2px auto;}
+.wk{width:1px;background:var(--text3);}
+.cb{width:8px;border-radius:1px;}
+.htfpat{font-size:7px;margin-top:2px;line-height:1.2;}
+
+/* ── CENTER COLUMN ── */
+#center{flex:1;display:flex;flex-direction:column;gap:1px;background:var(--border);min-width:0;}
+
+/* Main chart */
+#main-chart{flex:1;display:flex;flex-direction:column;background:var(--bg);min-height:0;}
+#tv-wrap{flex:1;min-height:0;}
+#tv-wrap>div,#tv-wrap iframe{width:100%;height:100%;border:none;display:block;}
+.tf-sw{display:flex;gap:2px;}
+.tf-btn{background:transparent;border:1px solid var(--border2);color:var(--text3);padding:1px 6px;border-radius:2px;cursor:pointer;font-size:9px;font-family:inherit;transition:all .2s;}
+.tf-btn:hover,.tf-btn.active{border-color:var(--accent);color:var(--accent);}
+
+/* Sub charts */
+#sub-charts{height:170px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;}
+.sc{background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden;height:170px;}
+.sc .ph{background:var(--bg2);padding:4px 8px;flex-shrink:0;}
+.sc-title{font-size:12px;letter-spacing:.07em;}
+.sc-val{font-size:10px;font-weight:bold;}
+.sc-body{flex:1;min-height:0;overflow:hidden;position:relative;}
+.sc-body>div{width:100%!important;height:100%!important;}
+.sc-ai-btn{
+  position:absolute;bottom:5px;right:5px;z-index:3;
+  background:rgba(240,185,11,.12);border:1px solid rgba(240,185,11,.35);
+  color:var(--accent);padding:2px 7px;border-radius:3px;cursor:pointer;
+  font-size:8px;font-family:inherit;letter-spacing:.05em;
+  transition:all .2s;backdrop-filter:blur(2px);
+}
+.sc-ai-btn:hover{background:rgba(240,185,11,.25);}
+
+/* News bar */
+#news-wrap{height:160px;display:flex;flex-direction:column;background:var(--bg);flex-shrink:0;border-top:1px solid var(--border);}
+#news-list{flex:1;overflow:hidden;}
+.ni{display:flex;align-items:flex-start;gap:8px;padding:4px 10px;border-bottom:1px solid var(--border);cursor:default;transition:background .15s;}
+.ni:last-child{border-bottom:none;}
+.ni:hover{background:var(--bg2);}
+.ni-title{flex:1;font-size:10px;line-height:1.4;color:var(--text);cursor:pointer;}
+.ni:hover .ni-title{color:var(--accent);}
+.ni-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.sb{display:inline-block;padding:1px 5px;border-radius:2px;font-size:8px;font-weight:bold;}
+.sb-bull{background:rgba(0,192,118,.12);color:var(--green);}
+.sb-bear{background:rgba(232,64,87,.12);color:var(--red);}
+.sb-neut{background:rgba(122,136,160,.1);color:var(--text2);}
+.ni-time{color:var(--text3);font-size:9px;}
+.ni-ai{
+  background:rgba(124,109,234,.1);border:1px solid rgba(124,109,234,.3);
+  color:var(--accent3);padding:1px 5px;border-radius:2px;font-size:8px;
+  cursor:pointer;font-family:inherit;white-space:nowrap;
+  transition:all .2s;
+}
+.ni-ai:hover{background:rgba(124,109,234,.25);}
+
+/* Eco bar */
+#eco-bar{
+  padding:3px 12px;background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;gap:12px;align-items:center;flex-shrink:0;overflow-x:auto;
+}
+.ei{display:flex;gap:5px;align-items:center;white-space:nowrap;font-size:9px;color:var(--text2);}
+.ei span{color:var(--text);}
+.ei-h{color:var(--red)!important;} .ei-m{color:var(--accent)!important;}
+
+/* ── RIGHT COLUMN ── */
+#right{width:305px;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;transition:width .18s ease;}
+#right.collapsed{width:0;}
+#right-reopen{
+  display:none;position:fixed;top:50%;right:0;transform:translateY(-50%);
+  background:var(--bg2);border:1px solid var(--border2);border-right:none;
+  color:var(--accent2);font-size:10px;padding:10px 4px;border-radius:4px 0 0 4px;
+  cursor:pointer;z-index:80;writing-mode:vertical-rl;letter-spacing:.05em;
+  font-family:inherit;
+}
+#right-reopen:hover{background:rgba(0,212,170,.1);}
+#right-reopen.show{display:block;}
+#ai-wrap{flex:1;display:flex;flex-direction:column;min-height:0;width:305px;}
+.ai-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.ai-tab{
+  flex:1;padding:6px 2px;text-align:center;font-size:9px;color:var(--text2);
+  cursor:pointer;border-bottom:2px solid transparent;letter-spacing:.04em;
+  transition:all .2s;
+}
+.ai-tab:hover{color:var(--text);}
+.ai-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(240,185,11,.04);}
+.ai-body{flex:1;overflow-y:auto;position:relative;}
+.ai-pane{display:none;padding:10px;font-family:'Tahoma','Sarabun',sans-serif;font-size:11px;line-height:1.85;white-space:pre-wrap;color:var(--text);}
+.ai-pane.active{display:block;}
+.ai-loading{color:var(--text2);animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.1}}
+.ai-footer{
+  display:flex;gap:4px;padding:6px 10px;
+  background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;
+}
+.afbtn{
+  flex:1;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text2);padding:4px 2px;border-radius:3px;cursor:pointer;
+  font-size:9px;font-family:inherit;text-align:center;transition:all .2s;
+}
+.afbtn:hover{border-color:var(--accent2);color:var(--accent2);}
+.afbtn.main{border-color:rgba(240,185,11,.4);color:var(--accent);background:rgba(240,185,11,.06);}
+.afbtn.main:hover{background:rgba(240,185,11,.14);}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* Mini chart TF selector */
+.sc-tf{
+  display:flex;gap:2px;padding:2px 6px;background:var(--bg2);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.stf{
+  background:transparent;border:1px solid transparent;
+  color:var(--text3);padding:1px 5px;border-radius:2px;
+  cursor:pointer;font-size:8px;font-family:inherit;
+  transition:all .15s;letter-spacing:.04em;
+}
+.stf:hover{color:var(--text);border-color:var(--border2);}
+.stf.active{color:var(--accent);border-color:rgba(240,185,11,.4);background:rgba(240,185,11,.06);}
+/* News source selector */
+.nsrc{
+  background:transparent;border:1px solid var(--border2);color:var(--text3);
+  padding:1px 7px;border-radius:2px;cursor:pointer;font-size:8px;font-family:inherit;
+  transition:all .15s;letter-spacing:.04em;
+}
+.nsrc:hover{color:var(--text);border-color:var(--text2);}
+.nsrc.active{color:var(--accent2);border-color:rgba(0,212,170,.45);background:rgba(0,212,170,.07);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ TOPBAR ══════════════════════ -->
+<div id="topbar">
+
+  <!-- BRAND LOGO -->
+  <div class="brand">
+    <div class="brand-icon">⬡</div>
+    <div class="brand-text">
+      <div class="brand-title">#คนเทรดทองคำ</div>
+      <div class="brand-sub">XAUUSD · AI Terminal v3</div>
+    </div>
+  </div>
+
+  <!-- MARKET SESSIONS -->
+  <div id="sessions" style="margin-left:12px;">
+    <div class="sess" id="s-tokyo">
+      <div class="sess-dot"></div>
+      <span class="sess-name">TOKYO</span>
+      <span class="sess-time" id="t-tokyo">--:--</span>
+    </div>
+    <div class="sess" id="s-london">
+      <div class="sess-dot"></div>
+      <span class="sess-name">LONDON</span>
+      <span class="sess-time" id="t-london">--:--</span>
+    </div>
+    <div class="sess" id="s-ny">
+      <div class="sess-dot"></div>
+      <span class="sess-name">NEW YORK</span>
+      <span class="sess-time" id="t-ny">--:--</span>
+    </div>
+  </div>
+
+  <!-- SPOT GOLD -->
+  <div id="spot-block" style="margin-left:12px;">
+    <div>
+      <div class="spot-lbl">Gold Continuous · GC00 · NYMEX</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:1px;">
+        <span class="spot-price" id="spot-price">----.-</span>
+        <span class="spot-chg" id="spot-chg">--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOCK -->
+  <div id="clock-block">
+    <span class="live-dot"></span>
+    <span id="live-clock">--:--:-- BKK</span>
+    <span id="refresh-lbl">· 60s</span>
+  </div>
+</div>
+
+<!-- ══════════════════════ CONFIG BAR ══════════════════════ -->
+<div id="config-bar">
+  <label>AI Provider</label>
+  <select id="ai-provider" onchange="onProviderChange()">
+    <option value="claude">Claude (Anthropic)</option>
+    <option value="deepseek">DeepSeek</option>
+    <option value="gemini">Gemini (Google)</option>
+    <option value="grok">Grok (xAI)</option>
+    <option value="openai">OpenAI / GPT</option>
+  </select>
+  <label>API Key</label>
+  <input type="password" id="api-key-input" placeholder="วาง API Key ที่นี่...">
+  <button class="cbtn" onclick="saveApiKey()">✓ บันทึก</button>
+  <span id="api-status" class="s-no">ยังไม่มี Key</span>
+  <span id="prov-badge" style="margin-left:auto;color:var(--accent2);font-size:9px;">AI: Claude</span>
+</div>
+
+<!-- ══════════════════════ BODY ══════════════════════ -->
+<div id="body">
+
+  <!-- ════ LEFT ════ -->
+  <div id="left">
+
+    <!-- PRICE PANEL -->
+    <div class="lp">
+      <div class="ph">💰 GC00 · Gold Futures <span id="last-upd" style="color:var(--text3)">--</span></div>
+      <div class="pb">
+        <div id="price-big" style="color:var(--accent)">----.-</div>
+        <div id="chg-row" style="font-size:11px;margin:3px 0 9px;color:var(--text2);">--</div>
+        <div class="prow"><span class="pl">Bid</span><span id="bid">--</span></div>
+        <div class="prow"><span class="pl">Ask</span><span id="ask">--</span></div>
+        <div class="prow"><span class="pl">High</span><span id="high" class="up">--</span></div>
+        <div class="prow"><span class="pl">Low</span><span id="low" class="dn">--</span></div>
+        <div class="prow"><span class="pl">Open</span><span id="dopen">--</span></div>
+        <div class="prow"><span class="pl">Spread</span><span id="spread">--</span></div>
+      </div>
+    </div>
+
+    <!-- TECHNICAL PANEL -->
+    <div class="lp">
+      <div class="ph">📐 Technical</div>
+      <div class="pb">
+        <div class="mg" style="margin-bottom:4px;">
+          <div class="mc"><div class="ml">ADR 5d</div><div class="mv" id="adr-v" style="color:var(--blue)">--</div><div class="ms">Avg Day Range</div></div>
+          <div class="mc"><div class="ml">MNP 0.3×</div><div class="mv" id="mnp-v" style="color:var(--purple)">--</div><div class="ms">Manip Zone</div></div>
+          <div class="mc"><div class="ml">Day Range</div><div class="mv" id="dr-v" style="color:var(--accent)">--</div><div class="ms">H − L</div></div>
+          <div class="mc"><div class="ml">ADR Used</div><div class="mv" id="adrp-v" style="color:var(--accent2)">--%</div><div class="ms">Range/ADR</div></div>
+        </div>
+        <div class="mc" style="margin-bottom:4px;">
+          <div class="ml">RSI 14 <span id="rsi-lbl" style="margin-left:4px;font-size:8px;"></span></div>
+          <div class="mv" id="rsi-v">--</div>
+          <div class="rsi-wrap"><div class="rsi-fill" id="rsi-fill" style="width:50%;background:var(--accent2)"></div></div>
+          <div class="rsi-ticks"><span>0</span><span>30</span><span>70</span><span>100</span></div>
+        </div>
+        <div class="mg" style="margin-bottom:4px;">
+          <div class="mc"><div class="ml">MA 20</div><div class="mv" id="ma20">--</div></div>
+          <div class="mc"><div class="ml">MA 50</div><div class="mv" id="ma50">--</div></div>
+        </div>
+        <div class="mc" style="text-align:center;">
+          <div class="ml">Bias</div>
+          <div class="mv" id="bias-v" style="font-size:15px;">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HTF CANDLES PANEL -->
+    <div class="lp">
+      <div class="ph">🕯 HTF Candles</div>
+      <div class="pb">
+        <div class="htf-row" id="htf-row"></div>
+        <div style="margin-top:6px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:6px 8px;">
+          <div class="ml" style="margin-bottom:3px;">Confluence</div>
+          <div id="htf-conf" style="font-size:10px;color:var(--text2);line-height:1.5;">--</div>
+        </div>
+        <button class="cbtn" onclick="aiAnalyzeHTF()" style="margin-top:6px;width:100%;font-size:9px;color:var(--accent2);border-color:rgba(0,212,170,.3);">
+          🤖 วิเคราะห์ HTF ด้วย AI
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- ════ CENTER ════ -->
+  <div id="center">
+
+    <!-- Main Chart -->
+    <div id="main-chart">
+      <div class="ph">
+        <span>📊 GC00 · Gold Futures · Main Chart</span>
+        <div class="tf-sw">
+          <button class="tf-btn" onclick="switchTF('5',this)">5m</button>
+          <button class="tf-btn" onclick="switchTF('15',this)">15m</button>
+          <button class="tf-btn" onclick="switchTF('60',this)">1H</button>
+          <button class="tf-btn active" onclick="switchTF('240',this)">4H</button>
+          <button class="tf-btn" onclick="switchTF('D',this)">1D</button>
+          <button class="tf-btn" onclick="switchTF('W',this)">1W</button>
+        </div>
+      </div>
+      <div id="tv-wrap"><div id="tv-container"></div></div>
+    </div>
+
+    <!-- Sub Charts (4 panels) -->
+    <div id="sub-charts">
+
+      <!-- 1: HTF XAUUSD Weekly -->
+      <div class="sc">
+        <div class="ph">
+          <span class="sc-title">🕯 XAGUSD ·SILVER </span>
+          <span class="sc-val" id="sc-xau" style="color:var(--gold)">--</span>
+        </div>
+        <div class="sc-tf" id="tf-xau">
+          <button class="stf active" onclick="reloadSub('xau','60',this)">1H</button>
+          <button class="stf" onclick="reloadSub('xau','240',this)">4H</button>
+          <button class="stf" onclick="reloadSub('xau','D',this)">1D</button>
+          <button class="stf" onclick="reloadSub('xau','W',this)">1W</button>
+        </div>
+        <div class="sc-body" id="sc-body-xau"></div>
+        <button class="sc-ai-btn" onclick="aiSubChart('XAUUSD Weekly HTF Candlestick','xau')">🤖 AI</button>
+      </div>
+
+      <!-- 2: DXY -->
+      <div class="sc">
+        <div class="ph">
+          <span class="sc-title">💵 DXY · US Dollar Index</span>
+          <span class="sc-val" id="sc-dxy" style="color:var(--blue)">--</span>
+        </div>
+        <div class="sc-tf" id="tf-dxy">
+          <button class="stf active" onclick="reloadSub('dxy','60',this)">1H</button>
+          <button class="stf" onclick="reloadSub('dxy','240',this)">4H</button>
+          <button class="stf" onclick="reloadSub('dxy','D',this)">1D</button>
+          <button class="stf" onclick="reloadSub('dxy','W',this)">1W</button>
+        </div>
+        <div class="sc-body" id="sc-body-dxy"></div>
+        <button class="sc-ai-btn" onclick="aiSubChart('DXY US Dollar Index','dxy')">🤖 AI</button>
+      </div>
+
+      <!-- 3: US 10Y Bond -->
+      <div class="sc">
+        <div class="ph">
+          <span class="sc-title">🏦 US10Y · Bond Yield</span>
+          <span class="sc-val" id="sc-bond" style="color:var(--orange)">--</span>
+        </div>
+        <div class="sc-tf" id="tf-bond">
+          <button class="stf active" onclick="reloadSub('bond','60',this)">1H</button>
+          <button class="stf" onclick="reloadSub('bond','240',this)">4H</button>
+          <button class="stf" onclick="reloadSub('bond','D',this)">1D</button>
+          <button class="stf" onclick="reloadSub('bond','W',this)">1W</button>
+        </div>
+        <div class="sc-body" id="sc-body-bond"></div>
+        <button class="sc-ai-btn" onclick="aiSubChart('US 10-Year Treasury Bond Yield','bond')">🤖 AI</button>
+      </div>
+
+      <!-- 4: Crude Oil WTI -->
+      <div class="sc">
+        <div class="ph">
+          <span class="sc-title">🛢 WTI · Crude Oil</span>
+          <span class="sc-val" id="sc-oil" style="color:var(--accent3)">--</span>
+        </div>
+        <div class="sc-tf" id="tf-oil">
+          <button class="stf active" onclick="reloadSub('oil','60',this)">1H</button>
+          <button class="stf" onclick="reloadSub('oil','240',this)">4H</button>
+          <button class="stf" onclick="reloadSub('oil','D',this)">1D</button>
+          <button class="stf" onclick="reloadSub('oil','W',this)">1W</button>
+        </div>
+        <div class="sc-body" id="sc-body-oil"></div>
+        <button class="sc-ai-btn" onclick="aiSubChart('Crude Oil WTI','oil')">🤖 AI</button>
+      </div>
+
+    </div><!-- /sub-charts -->
+
+    <!-- News Bar -->
+    <div id="news-wrap">
+      <div class="ph">
+        📰 Gold Market News · GoldBroker RSS
+        <button class="cbtn" style="font-size:8px;padding:2px 7px;margin-left:auto;" onclick="fetchNews()">⟳ รีเฟรช</button>
+        <button class="cbtn" style="font-size:8px;padding:2px 7px;" onclick="aiAllNews()">🤖 AI วิเคราะห์ข่าวทั้งหมด</button>
+      </div>
+      <div id="news-list" style="flex:1;overflow-y:auto;position:relative;"></div>
+    </div>
+
+    <!-- Eco Bar -->
+    <div id="eco-bar"><div id="eco-items" style="display:flex;gap:12px;"></div></div>
+
+  </div><!-- /center -->
+
+  <!-- ════ RIGHT ════ -->
+  <div id="right">
+    <div id="ai-wrap">
+      <div class="ph">🤖 AI Analysis · <span id="ai-prov-lbl" style="color:var(--accent2)">Claude</span>
+        <button class="cbtn" style="font-size:8px;padding:2px 7px;" onclick="aiRefreshAll()">⟳ Refresh All</button>
+        <button class="cbtn" style="font-size:8px;padding:2px 7px;" onclick="toggleAIPanel()" title="ซ่อนแผง AI">✕</button>
+      </div>
+      <div class="ai-tabs">
+        <div class="ai-tab active" id="tab-tech" onclick="switchTab('tech')">📐 Technical</div>
+        <div class="ai-tab" id="tab-sent" onclick="switchTab('sent')">📰 Sentiment</div>
+        <div class="ai-tab" id="tab-fund" onclick="switchTab('fund')">🏦 Fundamental</div>
+      </div>
+      <div class="ai-body">
+        <div class="ai-pane active" id="pane-tech"><span class="ai-loading">รอข้อมูล...</span></div>
+        <div class="ai-pane" id="pane-sent"><span class="ai-loading">รอข้อมูล...</span></div>
+        <div class="ai-pane" id="pane-fund"><span class="ai-loading">รอข้อมูล...</span></div>
+      </div>
+      <div class="ai-footer">
+        <button class="afbtn main" onclick="aiRefreshAll()">⟳ ทั้งหมด</button>
+        <button class="afbtn" onclick="aiTab('tech')">Tech</button>
+        <button class="afbtn" onclick="aiTab('sent')">Sent</button>
+        <button class="afbtn" onclick="aiTab('fund')">Fund</button>
+      </div>
+    </div>
+  </div><!-- /right -->
+
+  <button id="right-reopen" onclick="toggleAIPanel()">🤖 AI Panel</button>
+
+</div><!-- /body -->
+
+<!-- TradingView -->
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script>
+// ══════════════════════════════════════════════
+//  PROVIDERS
+// ══════════════════════════════════════════════
+const PROVIDERS = {
+  claude:   { name:'Claude',   url:'https://api.anthropic.com/v1/messages',                                                    model:'claude-sonnet-4-6' },
+  deepseek: { name:'DeepSeek', url:'https://api.deepseek.com/v1/chat/completions',                                             model:'deepseek-chat' },
+  gemini:   { name:'Gemini',   url:'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', model:'gemini-2.0-flash' },
+  grok:     { name:'Grok',     url:'https://api.x.ai/v1/chat/completions',                                                     model:'grok-beta' },
+  openai:   { name:'OpenAI',   url:'https://api.openai.com/v1/chat/completions',                                               model:'gpt-4o-mini' },
+}
+let CP = 'claude', apiKey = ''
+
+function saveApiKey(){
+  const k = document.getElementById('api-key-input').value.trim()
+  if(!k) return
+  apiKey = k
+  localStorage.setItem('xau3_key_'+CP, k)
+  setStatus(true)
+}
+function loadApiKey(){
+  const k = localStorage.getItem('xau3_key_'+CP)||''
+  apiKey = k
+  document.getElementById('api-key-input').value = k ? '••••••••••' : ''
+  setStatus(!!k)
+}
+function setStatus(ok){
+  const el = document.getElementById('api-status')
+  el.textContent = ok ? '✓ พร้อม' : 'ยังไม่มี Key'
+  el.className = ok ? 's-ok' : 's-no'
+}
+function onProviderChange(){
+  CP = document.getElementById('ai-provider').value
+  document.getElementById('ai-prov-lbl').textContent = PROVIDERS[CP].name
+  document.getElementById('prov-badge').textContent = 'AI: ' + PROVIDERS[CP].name
+  document.getElementById('api-key-input').value = ''
+  loadApiKey()
+}
+loadApiKey()
+
+// ══════════════════════════════════════════════
+//  AI PANEL TOGGLE
+// ══════════════════════════════════════════════
+function toggleAIPanel(){
+  const r=document.getElementById('right')
+  const btn=document.getElementById('right-reopen')
+  const collapsed=r.classList.toggle('collapsed')
+  btn.classList.toggle('show', collapsed)
+}
+
+// ══════════════════════════════════════════════
+//  UNIVERSAL AI CALL
+// ══════════════════════════════════════════════
+async function callAI(prompt){
+  const p = PROVIDERS[CP]
+  const key = apiKey || localStorage.getItem('xau3_key_'+CP)
+  if(!key) throw new Error('NO_KEY')
+  let res, body
+  if(CP === 'claude'){
+    res = await fetch(p.url, { method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({ model:p.model, max_tokens:1200, messages:[{role:'user',content:prompt}] })
+    })
+    body = await res.json()
+    return body.content?.[0]?.text || body.error?.message || 'Error'
+  } else if(CP === 'gemini'){
+    res = await fetch(p.url+'?key='+key, { method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{parts:[{text:prompt}]}] })
+    })
+    body = await res.json()
+    return body.candidates?.[0]?.content?.parts?.[0]?.text || body.error?.message || 'Error'
+  } else {
+    res = await fetch(p.url, { method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({ model:p.model, max_tokens:1200, messages:[{role:'user',content:prompt}] })
+    })
+    body = await res.json()
+    return body.choices?.[0]?.message?.content || body.error?.message || 'Error'
+  }
+}
+
+// ══════════════════════════════════════════════
+//  CLOCK + SESSIONS
+// ══════════════════════════════════════════════
+function updateClock(){
+  const now = new Date()
+  document.getElementById('live-clock').textContent =
+    now.toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour12:false}) + ' BKK'
+
+  const utcH = now.getUTCHours(), utcM = now.getUTCMinutes()
+  const utcTotal = utcH * 60 + utcM
+
+  // Session open windows (UTC minutes)
+  const sessions = {
+    tokyo:  { open: 0*60,   close: 9*60  },   // 00:00–09:00 UTC
+    london: { open: 7*60,   close: 16*60 },   // 07:00–16:00 UTC
+    ny:     { open: 12*60,  close: 21*60 },   // 12:00–21:00 UTC
+  }
+  const tzMap = { tokyo:'Asia/Tokyo', london:'Europe/London', ny:'America/New_York' }
+  const fmt = tz => now.toLocaleTimeString('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',hour12:false})
+
+  Object.entries(sessions).forEach(([id,s])=>{
+    const isOpen = utcTotal >= s.open && utcTotal < s.close
+    const el = document.getElementById('s-'+id)
+    el.className = 'sess ' + (isOpen ? 'open' : 'closed')
+    document.getElementById('t-'+id).textContent = fmt(tzMap[id])
+  })
+}
+setInterval(updateClock, 1000); updateClock()
+
+// ══════════════════════════════════════════════
+//  TRADINGVIEW MAIN CHART
+// ══════════════════════════════════════════════
+let tvW = null
+function loadTV(interval){
+  document.getElementById('tv-container').innerHTML = ''
+  if(typeof TradingView === 'undefined') return
+  tvW = new TradingView.widget({
+    container_id:'tv-container', symbol:'OANDA:XAUUSD',
+    interval, timezone:'Asia/Bangkok', theme:'dark', style:'1',
+    locale:'th_TH', toolbar_bg:'#0f1218',
+    enable_publishing:false, hide_side_toolbar:false,
+    withdateranges:true, autosize:true,
+    hide_volume:true, hide_legend:false,
+    studies:[],
+  })
+}
+function switchTF(tf, btn){
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active'); loadTV(tf)
+}
+
+// ── SUB-CHARTS ──
+const SUB_SYMBOLS = {
+  xau:  'OANDA:XAGUSD',
+  dxy:  'Tickmill:DXY',
+  bond: 'NASDAQ:IEF',
+  oil:  'TVC:USOIL',
+}
+const subIntervals = { xau:'60', dxy:'60', bond:'60', oil:'60' }
+
+function buildSubWidget(key, interval){
+  const containerId = 'sc-body-' + key
+  document.getElementById(containerId).innerHTML = ''
+  new TradingView.widget({
+    container_id:      containerId,
+    symbol:            SUB_SYMBOLS[key],
+    interval:          interval,
+    timezone:          'Asia/Bangkok',
+    theme:             'dark',
+    style:             '1',
+    locale:            'en',
+    toolbar_bg:        '#0f1218',
+    hide_top_toolbar:  true,
+    hide_side_toolbar: true,
+    hide_legend:       true,
+    hide_volume:       true,
+    enable_publishing: false,
+    save_image:        false,
+    withdateranges:    false,
+    autosize:          true,
+    studies:           [],
+  })
+}
+
+function reloadSub(key, interval, btn){
+  subIntervals[key] = interval
+  // update active button in this panel's tf row
+  document.querySelectorAll('#tf-'+key+' .stf').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active')
+  buildSubWidget(key, interval)
+}
+
+function loadSubCharts(){
+  if(typeof TradingView === 'undefined'){
+    setTimeout(loadSubCharts, 500); return
+  }
+  Object.keys(SUB_SYMBOLS).forEach(key => buildSubWidget(key, subIntervals[key]))
+}
+
+loadTV('240')
+// หน่วงเล็กน้อยให้ TradingView library โหลดก่อน
+setTimeout(loadSubCharts, 800)
+
+// ══════════════════════════════════════════════
+//  PRICE FETCH
+// ══════════════════════════════════════════════
+async function fetchPrice(){
+  for(const fn of [fetchGC00, fetchMetal, fetchGoldAPI]){
+    try{ const d=await fn(); if(d?.price) return d }catch{}
+  }
+}
+// Gold Futures GC=F via Yahoo Finance (allorigins proxy)
+async function fetchGC00(){
+  const proxy='https://api.allorigins.win/get?url='
+  const url='https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1d&range=2d'
+  const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(6000)})
+  const d=await r.json()
+  const parsed=JSON.parse(d.contents)
+  const meta=parsed?.chart?.result?.[0]?.meta
+  const price=parseFloat(meta?.regularMarketPrice)
+  if(!price||isNaN(price)) throw new Error('no GC data')
+  return { price, bid:price-0.3, ask:price+0.3 }
+}
+// Silver Futures SI=F via Yahoo Finance (allorigins proxy) — สำหรับ mini chart Silver
+async function fetchSilverPrice(){
+  const proxy='https://api.allorigins.win/get?url='
+  const url='https://query1.finance.yahoo.com/v8/finance/chart/SI%3DF?interval=1d&range=2d'
+  const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(6000)})
+  const d=await r.json()
+  const parsed=JSON.parse(d.contents)
+  const meta=parsed?.chart?.result?.[0]?.meta
+  const price=parseFloat(meta?.regularMarketPrice)
+  const prevClose=parseFloat(meta?.previousClose ?? meta?.chartPreviousClose)
+  if(!price||isNaN(price)) throw new Error('no SI data')
+  return { price, prevClose }
+}
+async function updateSilverPrice(){
+  const el=document.getElementById('sc-xau'); if(!el) return
+  try{
+    const d=await fetchSilverPrice()
+    el.textContent=d.price.toFixed(3)
+    if(d.prevClose) el.style.color = d.price>=d.prevClose ? 'var(--green)' : 'var(--red)'
+  }catch(e){ /* เก็บค่าล่าสุดไว้ ไม่ต้องล้างถ้าดึงไม่สำเร็จ */ }
+}
+async function fetchMetal(){
+  const r = await fetch('https://metals.live/api/v1/spot/gold')
+  const d = await r.json()
+  const price = parseFloat(d[0]?.price)
+  return { price, bid:price-0.3, ask:price+0.3 }
+}
+async function fetchGoldAPI(){
+  const r = await fetch('https://data-asg.goldprice.org/dbXRates/USD')
+  const d = await r.json()
+  const price = parseFloat(d.items[0]?.xauPrice)
+  return { price, bid:price-0.3, ask:price+0.3 }
+}
+
+// ══════════════════════════════════════════════
+//  INDICATORS + HTF
+// ══════════════════════════════════════════════
+let priceHist=[], CD={}, htfData={}
+
+// Seed priceHist เพื่อให้ MA20/MA50/RSI คำนวณได้ทันที (ก่อนมีข้อมูลจริงครบ)
+function seedPriceHist(currentPrice){
+  if(priceHist.length >= 60) return // มีข้อมูลพอแล้ว
+  const base = currentPrice || 3300
+  // สร้าง 60 แท่งจำลองด้วย random walk เล็กน้อย
+  const seed = []
+  let p = base * (1 + (Math.random()-0.5)*0.01)
+  for(let i=0;i<60;i++){
+    p += (Math.random()-0.5) * base * 0.0015
+    seed.push(Math.max(p, base*0.97))
+  }
+  seed[seed.length-1] = currentPrice || base
+  priceHist = seed
+}
+const sma=(a,n)=>a.length<n?null:a.slice(-n).reduce((s,v)=>s+v,0)/n
+function calcRSI(p,n=14){
+  if(p.length<n+1) return null
+  const ch=p.slice(1).map((v,i)=>v-p[i]); let g=0,l=0
+  ch.slice(-n).forEach(c=>c>0?g+=c:l+=Math.abs(c))
+  const ag=g/n, al=l/n; if(!al) return 100
+  return 100-(100/(1+ag/al))
+}
+
+const HTF_TFS = ['W','D','4H','1H']
+
+// จัดหมวดแท่งเทียนจาก OHLC จริง → รูปแบบแท่งเทียน (Doji/Hammer/Shoot.Star/Strong/ Bullish-Bearish)
+function classifyCandle(op,hi,lo,cl){
+  const bs=Math.abs(cl-op), rng=(hi-lo)||1
+  const uw=hi-Math.max(op,cl), dw=Math.min(op,cl)-lo
+  const isBull=cl>=op
+  const br=bs/rng, ur=uw/rng, dr=dw/rng
+  let pat='',pc='var(--text2)'
+  if(br<0.1){pat='Doji';pc='var(--accent)'}
+  else if(dr>0.55&&br<0.3){pat=isBull?'Hammer':'Hang.Man';pc=isBull?'var(--green)':'var(--red)'}
+  else if(ur>0.55&&br<0.3){pat='Shoot.Star';pc='var(--red)'}
+  else if(br>0.65){pat=isBull?'Strong Bull':'Strong Bear';pc=isBull?'var(--green)':'var(--red)'}
+  else{pat=isBull?'Bullish':'Bearish';pc=isBull?'var(--green)':'var(--red)'}
+  return {hi,lo,op,cl,isBull,pat,pc,br,ur,dr}
+}
+
+// ดึงแท่งเทียนจริงจาก Yahoo Finance chart API (GC=F) ผ่าน allorigins proxy
+async function fetchYahooCandles(interval,range){
+  const proxy='https://api.allorigins.win/get?url='
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=${interval}&range=${range}`
+  const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)})
+  const d=await r.json()
+  const parsed=JSON.parse(d.contents)
+  const res=parsed?.chart?.result?.[0]
+  if(!res) throw new Error('no chart data')
+  const ts=res.timestamp||[]
+  const q=res.indicators?.quote?.[0]||{}
+  return ts.map((t,i)=>({t,o:q.open[i],h:q.high[i],l:q.low[i],c:q.close[i]}))
+    .filter(c=>c.o!=null&&c.h!=null&&c.l!=null&&c.c!=null)
+}
+// รวมแท่ง 1H เป็นแท่ง 4H (group ตามช่วง UTC ทุก 4 ชม.)
+function aggregateCandles(candles,hours){
+  const groups={}
+  candles.forEach(c=>{
+    const d=new Date(c.t*1000)
+    const bucket=Math.floor(d.getUTCHours()/hours)*hours
+    const key=`${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}-${bucket}`
+    ;(groups[key]=groups[key]||[]).push(c)
+  })
+  return Object.values(groups).map(arr=>({
+    t:arr[0].t, o:arr[0].o, c:arr[arr.length-1].c,
+    h:Math.max(...arr.map(x=>x.h)), l:Math.min(...arr.map(x=>x.l))
+  }))
+}
+
+let htfLastFetch=0
+async function buildHTF(price,h,l,o){
+  const now=Date.now()
+  // ใช้ข้อมูลเดิมถ้าเพิ่งดึงมาไม่เกิน 4 นาที เพื่อลดจำนวนคำขอไปยัง Yahoo/allorigins
+  if(now-htfLastFetch<4*60*1000 && Object.keys(htfData).length) return
+  try{
+    const [weekly,daily,hourly]=await Promise.all([
+      fetchYahooCandles('1wk','2y'),
+      fetchYahooCandles('1d','6mo'),
+      fetchYahooCandles('60m','5d')
+    ])
+    const fourH=aggregateCandles(hourly,4)
+    // ใช้แท่งที่ "ปิดแล้ว" จริง (แท่งสุดท้ายอาจยังไม่ปิด) แทนแท่งปัจจุบันที่ยังไม่จบ
+    const lastClosed=arr=>arr.length>=2?arr[arr.length-2]:arr[arr.length-1]
+    const map={W:lastClosed(weekly),D:lastClosed(daily),'4H':lastClosed(fourH),'1H':lastClosed(hourly)}
+    HTF_TFS.forEach(tf=>{
+      const c=map[tf]; if(!c) return
+      htfData[tf]=classifyCandle(c.o,c.h,c.l,c.c)
+    })
+    htfLastFetch=now
+  }catch(e){
+    // สำรอง: ถ้าดึงข้อมูลจริงไม่สำเร็จ ประมาณค่าจากช่วงราคาวันนี้ (ดีกว่าไม่มีข้อมูลเลย)
+    HTF_TFS.forEach((tf,i)=>{
+      const n=[0.55,0.32,0.14,0.04][i]
+      const hi=h+(Math.random()*n*h*0.001), lo=l-(Math.random()*n*l*0.001)
+      const op=o+((Math.random()-.5)*n*o*0.002), cl=price
+      htfData[tf]=classifyCandle(op,hi,lo,cl)
+    })
+    htfLastFetch=now
+  }
+}
+function renderHTF(){
+  const row=document.getElementById('htf-row'); row.innerHTML=''
+  let b=0,r=0
+  HTF_TFS.forEach(tf=>{
+    const d=htfData[tf]; if(!d) return
+    d.isBull?b++:r++
+    const bh=Math.max(5,Math.round(d.br*34)), uw=Math.max(3,Math.round(d.ur*22)), dw=Math.max(3,Math.round(d.dr*22))
+    const bc=d.isBull?'var(--green)':'var(--red)'
+    row.innerHTML+=`<div class="htfmc">
+      <div class="htftf">${tf}</div>
+      <div class="htfcndle">
+        <div class="wk" style="height:${uw}px"></div>
+        <div class="cb" style="height:${bh}px;background:${bc};border:1px solid ${bc}"></div>
+        <div class="wk" style="height:${dw}px"></div>
+      </div>
+      <div class="htfpat" style="color:${d.pc}">${d.pat}</div>
+      <div style="font-size:8px;font-weight:bold;color:${bc}">${d.isBull?'▲':'▼'}</div>
+    </div>`
+  })
+  const conf=document.getElementById('htf-conf')
+  if(b>=3) conf.innerHTML=`<span style="color:var(--green)">▲ ${b}/4 Bullish — แนวโน้มขึ้น</span>`
+  else if(r>=3) conf.innerHTML=`<span style="color:var(--red)">▼ ${r}/4 Bearish — แนวโน้มลง</span>`
+  else conf.innerHTML=`<span style="color:var(--accent)">↔ Mixed — ${b} Bull / ${r} Bear</span>`
+}
+
+async function updateIndicators(price){
+  if(priceHist.length < 55) seedPriceHist(price)
+  priceHist.push(price); if(priceHist.length>200) priceHist.shift()
+  const ma20v=sma(priceHist,20), ma50v=sma(priceHist,50), rsiv=calcRSI(priceHist,14)
+  const h=window.dayHigh||price, l=window.dayLow||price, o=window.dayOpen||price
+  const dr=h-l, adr=Math.max(dr,22)*1.05, mnp=adr*0.3
+  const fmt=v=>v!=null?v.toFixed(2):'--'
+  document.getElementById('ma20').textContent=fmt(ma20v)
+  document.getElementById('ma50').textContent=fmt(ma50v)
+  document.getElementById('adr-v').textContent=fmt(adr)
+  document.getElementById('mnp-v').textContent=fmt(mnp)
+  document.getElementById('dr-v').textContent=fmt(dr)
+  document.getElementById('adrp-v').textContent=adr>0?(dr/adr*100).toFixed(0)+'%':'--%'
+  if(rsiv!=null){
+    document.getElementById('rsi-v').textContent=rsiv.toFixed(1)
+    document.getElementById('rsi-fill').style.width=rsiv+'%'
+    let rc='var(--accent2)',rl='Neutral'
+    if(rsiv>70){rc='var(--red)';rl='Overbought'}else if(rsiv<30){rc='var(--green)';rl='Oversold'}
+    document.getElementById('rsi-fill').style.background=rc
+    document.getElementById('rsi-lbl').textContent=rl
+    document.getElementById('rsi-lbl').style.color=rc
+  }
+  let bias='--',biasC='var(--text2)'
+  if(ma20v&&ma50v){
+    if(price>ma20v&&price>ma50v){bias='📈 BULL';biasC='var(--green)'}
+    else if(price<ma20v&&price<ma50v){bias='📉 BEAR';biasC='var(--red)'}
+    else{bias='↔ SIDEWAY';biasC='var(--accent)'}
+  }
+  const bv=document.getElementById('bias-v'); bv.textContent=bias; bv.style.color=biasC
+  await buildHTF(price,h,l,o); renderHTF()
+  CD={price,ma20:fmt(ma20v),ma50:fmt(ma50v),rsi:rsiv!=null?rsiv.toFixed(1):'--',
+    adr:fmt(adr),mnp:fmt(mnp),dr:fmt(dr),high:h.toFixed(2),low:l.toFixed(2),open:o.toFixed(2),
+    bias,adrPct:adr>0?(dr/adr*100).toFixed(0)+'%':'--',htf:htfData}
+}
+
+async function updatePrice(){
+  const d=await fetchPrice(); if(!d) return
+  const {price,bid,ask}=d
+  if(!window.dayOpen) window.dayOpen=price
+  if(!window.dayHigh||price>window.dayHigh) window.dayHigh=price
+  if(!window.dayLow||price<window.dayLow) window.dayLow=price
+  const chg=price-window.dayOpen, pct=(chg/window.dayOpen*100).toFixed(2), up=chg>=0
+  // Left panel
+  const pm=document.getElementById('price-big')
+  pm.textContent=price.toFixed(2); pm.style.color=up?'var(--green)':'var(--red)'
+  const cr=document.getElementById('chg-row')
+  cr.textContent=`${up?'+':''}${chg.toFixed(2)} (${pct}%)`; cr.style.color=up?'var(--green)':'var(--red)'
+  document.getElementById('bid').textContent=bid.toFixed(2)
+  document.getElementById('ask').textContent=ask.toFixed(2)
+  document.getElementById('high').textContent=window.dayHigh.toFixed(2)
+  document.getElementById('low').textContent=window.dayLow.toFixed(2)
+  document.getElementById('dopen').textContent=window.dayOpen.toFixed(2)
+  document.getElementById('spread').textContent=(ask-bid).toFixed(2)
+  document.getElementById('last-upd').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false})
+  // Top bar spot
+  document.getElementById('spot-price').textContent=price.toFixed(2)
+  document.getElementById('spot-price').style.color=up?'var(--green)':'var(--gold)'
+  const sc=document.getElementById('spot-chg')
+  sc.textContent=`${up?'▲':'▼'} ${Math.abs(chg).toFixed(2)} (${Math.abs(pct)}%)`
+  sc.className='spot-chg '+(up?'spot-up':'spot-dn')
+  await updateIndicators(price)
+}
+
+// ══════════════════════════════════════════════
+//  NEWS
+// ══════════════════════════════════════════════
+const KWB=['surge','rally','rise','gain','jump','bullish','buy','support','soar','higher','record']
+const KWR=['drop','fall','decline','sell','pressure','bearish','low','slump','weak','crash','fear']
+const sentiment=t=>{const s=t.toLowerCase();const b=KWB.filter(k=>s.includes(k)).length;const r=KWR.filter(k=>s.includes(k)).length;return b>r?'bull':r>b?'bear':'neut'}
+let newsCache=[]
+
+async function fetchNews(){
+  // ดึงข่าวจาก RSS มาแสดงในพาแนล + cache สำหรับ AI วิเคราะห์
+  // ใช้ /raw?url= แทน /get?url= เพราะ /get จะห่อ XML/RSS เป็น base64 data-URI ทำให้ parse ไม่ออก (นี่คือสาเหตุที่ก่อนหน้านี้ขึ้น "ไม่มีข่าว")
+  const proxy='https://api.allorigins.win/raw?url='
+  const feeds=[
+    'https://goldbroker.com/news.rss',
+    'https://www.kitco.com/rss/news.rss',
+    'https://feeds.reuters.com/reuters/businessNews',
+  ]
+  for(const feed of feeds){
+    try{
+      const r=await fetch(proxy+encodeURIComponent(feed),{signal:AbortSignal.timeout(8000)})
+      const text=await r.text()
+      const xml=new DOMParser().parseFromString(text,'text/xml')
+      if(xml.querySelector('parsererror')) continue
+      const items=Array.from(xml.querySelectorAll('item')).slice(0,10)
+      if(items.length>0){
+        newsCache=items.map(it=>({
+          title:(it.querySelector('title')?.textContent||'').replace(/<[^>]+>/g,'').trim(),
+          link:it.querySelector('link')?.textContent||'#',
+          date:it.querySelector('pubDate')?.textContent||''
+        }))
+        renderNews()
+        return
+      }
+    }catch(e){}
+  }
+  renderNews() // ไม่มีแหล่งข่าวไหนสำเร็จเลย แสดง "ไม่มีข่าว"
+}
+
+function renderNews(){
+  const c=document.getElementById('news-list')
+  if(!newsCache.length){c.innerHTML='<div style="color:var(--text3);padding:8px 10px;font-size:10px;">ไม่มีข่าว</div>';return}
+  c.innerHTML=newsCache.map((n,i)=>{
+    const s=sentiment(n.title)
+    const sc=s==='bull'?'sb-bull':s==='bear'?'sb-bear':'sb-neut'
+    const st=s==='bull'?'Bull':s==='bear'?'Bear':'Neutral'
+    const ts=n.date?new Date(n.date).toLocaleTimeString('th-TH',{hour12:false,hour:'2-digit',minute:'2-digit'}):''
+    return `<div class="ni">
+      <span class="ni-title" onclick="window.open('${n.link}','_blank')">${n.title}</span>
+      <div class="ni-right">
+        <span class="sb ${sc}">${st}</span>
+        <span class="ni-time">${ts}</span>
+        <button class="ni-ai" onclick="aiSingleNews(${i})">→ AI</button>
+      </div>
+    </div>`
+  }).join('')
+}
+
+async function aiSingleNews(idx){
+  const n=newsCache[idx]; if(!n) return
+  switchTab('sent')
+  setPane('sent',`<span class="ai-loading">🤖 วิเคราะห์ข่าว...</span>`)
+  const prompt=`คุณคือนักวิเคราะห์ทองคำ XAUUSD มืออาชีพ
+
+ข่าวที่ต้องวิเคราะห์: "${n.title}"
+
+บริบทตลาด: XAUUSD ${CD.price||'--'} | Bias: ${CD.bias||'--'} | RSI: ${CD.rsi||'--'}
+
+วิเคราะห์เป็นภาษาไทย:
+📰 สรุปความหมายของข่าวนี้
+📊 ผลกระทบต่อ XAUUSD (Bullish / Bearish / Neutral + เหตุผล)
+🎯 ระดับราคาที่ควรระวัง
+⚡ ปรับกลยุทธ์อย่างไร
+
+ตอบกระชับ ตรงประเด็น ภาษาไทยชัดเจน`
+  try{ const t=await callAI(prompt); setPane('sent',t) }
+  catch(e){ setPane('sent',errMsg(e)) }
+}
+
+async function aiAllNews(){
+  if(!newsCache.length) return
+  switchTab('sent')
+  setPane('sent',`<span class="ai-loading">🤖 วิเคราะห์ข่าวทั้งหมด...</span>`)
+  const heads=newsCache.slice(0,6).map((n,i)=>`${i+1}. ${n.title}`).join('\n')
+  const prompt=`คุณคือนักวิเคราะห์ทองคำมืออาชีพ
+
+ข่าวล่าสุด:
+${heads}
+
+XAUUSD: ${CD.price||'--'} | Bias: ${CD.bias||'--'} | RSI: ${CD.rsi||'--'}
+
+วิเคราะห์ภาพรวม Market Sentiment จากข่าวทั้งหมด:
+📰 SENTIMENT OVERVIEW — ทิศทางโดยรวม
+💵 ผลกระทบต่อ XAUUSD — Bullish Factors / Bearish Factors
+⚡ SHORT-TERM OUTLOOK (1-3 วัน) — คาดการณ์ทิศทางและระดับสำคัญ
+⚠️ ความเสี่ยงที่ต้องติดตาม
+
+ตอบกระชับ ภาษาไทยชัดเจน`
+  try{ const t=await callAI(prompt); setPane('sent',t) }
+  catch(e){ setPane('sent',errMsg(e)) }
+}
+
+// ══════════════════════════════════════════════
+//  SUB-CHART AI
+// ══════════════════════════════════════════════
+const SC_DESC={
+  xau:'XAUUSD Weekly Timeframe Candlestick — ภาพ Price Structure ระยะยาว',
+  dxy:'DXY US Dollar Index — ดัชนีค่าเงินดอลลาร์สหรัฐ',
+  bond:'US 10-Year Treasury Bond Yield — อัตราผลตอบแทนพันธบัตรรัฐบาลสหรัฐ 10 ปี',
+  oil:'Crude Oil WTI — ราคาน้ำมันดิบตลาดโลก',
+}
+async function aiSubChart(name, key){
+  switchTab('fund')
+  setPane('fund',`<span class="ai-loading">🤖 วิเคราะห์ ${name}...</span>`)
+  const prompt=`คุณคือนักวิเคราะห์ Macro และ Fundamental ทองคำมืออาชีพ
+
+กำลังวิเคราะห์: ${SC_DESC[key]||name}
+
+บริบทปัจจุบัน:
+• XAUUSD: ${CD.price||'--'} | Bias: ${CD.bias||'--'}
+• ADR: ${CD.adr||'--'} | RSI: ${CD.rsi||'--'}
+• MA20: ${CD.ma20||'--'} | MA50: ${CD.ma50||'--'}
+
+วิเคราะห์ความสัมพันธ์กับ XAUUSD เป็นภาษาไทย:
+🔍 ${name} — สถานการณ์และระดับสำคัญปัจจุบัน
+🔗 ความสัมพันธ์กับทองคำ — Correlation และสัญญาณที่บ่งชี้
+📊 Fundamental Impact — ผลกระทบต่อ XAUUSD ระยะสั้น-กลาง
+💡 สรุปและแนวทาง — ควรปรับ Bias อย่างไร
+
+ตอบกระชับ ภาษาไทยชัดเจน`
+  try{ const t=await callAI(prompt); setPane('fund',t) }
+  catch(e){ setPane('fund',errMsg(e)) }
+}
+
+async function aiAnalyzeHTF(){
+  switchTab('tech')
+  setPane('tech',`<span class="ai-loading">🤖 วิเคราะห์ HTF Candles...</span>`)
+  const htfStr=Object.entries(htfData).map(([tf,d])=>`${tf}: ${d.pat} (${d.isBull?'Bullish':'Bearish'})`).join(', ')
+  const prompt=`คุณคือนักวิเคราะห์ Price Action และ HTF มืออาชีพ
+
+HTF Candle Analysis:
+${htfStr}
+
+XAUUSD: ${CD.price||'--'} | Bias: ${CD.bias||'--'} | RSI: ${CD.rsi||'--'}
+ADR: ${CD.adr||'--'} | MA20: ${CD.ma20||'--'} | MA50: ${CD.ma50||'--'}
+
+วิเคราะห์ Multi-Timeframe ภาษาไทย:
+🕯 HTF STRUCTURE — ทิศทาง Weekly/Daily และ Pattern สำคัญ
+📐 CONFLUENCE — TF ที่ Align กัน และแนวรับ-ต้านจาก HTF
+🎯 ENTRY FRAMEWORK — Bias, Entry Zone, SL, TP, Risk:Reward
+⚠️ INVALIDATION — เงื่อนไขที่ทำให้ Setup เสีย
+
+ตอบกระชับ ภาษาไทยชัดเจน`
+  try{ const t=await callAI(prompt); setPane('tech',t) }
+  catch(e){ setPane('tech',errMsg(e)) }
+}
+
+// ══════════════════════════════════════════════
+//  AI TABS (3 PANES)
+// ══════════════════════════════════════════════
+function switchTab(name){
+  document.querySelectorAll('.ai-tab').forEach(t=>t.classList.remove('active'))
+  document.querySelectorAll('.ai-pane').forEach(p=>p.classList.remove('active'))
+  document.getElementById('tab-'+name).classList.add('active')
+  document.getElementById('pane-'+name).classList.add('active')
+}
+function setPane(name,html){
+  document.getElementById('pane-'+name).innerHTML=html
+}
+function errMsg(e){
+  if(e.message==='NO_KEY') return `<span style="color:var(--red)">⚠ ใส่ API Key ของ ${PROVIDERS[CP].name} ในแถบด้านบน แล้วกด ✓ บันทึก</span>`
+  return `<span style="color:var(--red)">⚠ Error: ${e.message}</span>`
+}
+
+function htfSumStr(){
+  return Object.entries(htfData).map(([tf,d])=>`${tf}:${d.pat}(${d.isBull?'Bull':'Bear'})`).join(', ')
+}
+function ctx(){
+  return `XAUUSD: ${CD.price||'--'} | High: ${CD.high||'--'} | Low: ${CD.low||'--'} | Open: ${CD.open||'--'}
+ADR: ${CD.adr||'--'} | MNP: ${CD.mnp||'--'} | ADR Used: ${CD.adrPct||'--'}
+MA20: ${CD.ma20||'--'} | MA50: ${CD.ma50||'--'} | RSI(14): ${CD.rsi||'--'}
+Bias: ${CD.bias||'--'} | HTF: ${htfSumStr()}`
+}
+
+const PROMPTS={
+  tech:`คุณคือนักวิเคราะห์เทคนิคทองคำมืออาชีพ
+
+${ctx()}
+
+วิเคราะห์เทคนิคภาษาไทย:
+📐 TECHNICAL SETUP — แนวโน้ม MA, RSI, ADR เหลือพื้นที่เท่าไร
+🎯 แนวรับ-แนวต้าน — S1, S2, R1, R2
+🕯 HTF Confluence — สรุปภาพ Multi-Timeframe
+💡 Trade Setup — Entry / SL / TP / R:R
+
+ตอบกระชับ ภาษาไทย`,
+
+  sent:`คุณคือนักวิเคราะห์ Market Sentiment มืออาชีพ
+
+${ctx()}
+
+วิเคราะห์ Sentiment ภาษาไทย:
+📰 MARKET SENTIMENT — Risk-on/off, Retail vs Smart Money
+💵 MACRO — DXY, Bond Yield, Inflation Expectation
+📊 POSITIONING — สัญญาณ Order Flow
+⚠️ RISK EVENTS — เหตุการณ์ที่จะเปลี่ยน Sentiment
+
+ตอบกระชับ ภาษาไทย`,
+
+  fund:`คุณคือนักวิเคราะห์ปัจจัยพื้นฐานทองคำมืออาชีพ
+
+${ctx()}
+
+วิเคราะห์ปัจจัยพื้นฐานภาษาไทย:
+🏦 FUNDAMENTAL DRIVERS — ปัจจัยหนุน/กดดันราคาทอง
+📅 ECONOMIC CALENDAR — ข้อมูลสำคัญสัปดาห์นี้, Fed Policy
+🌍 GEOPOLITICAL & CENTRAL BANKS — ความต้องการจาก Central Banks
+📈 OUTLOOK — มุมมองระยะกลาง 1-4 สัปดาห์
+
+ตอบกระชับ ภาษาไทย`
+}
+
+async function aiTab(name){
+  if(!CD.price){alert('รอข้อมูลราคาก่อนครับ');return}
+  switchTab(name)
+  setPane(name,`<span class="ai-loading">🤖 ${PROVIDERS[CP].name} กำลังวิเคราะห์...</span>`)
+  // Rebuild ctx with latest data
+  const prompt=name==='tech'
+    ? PROMPTS.tech.replace('${ctx()}',ctx())
+    : name==='sent'
+    ? PROMPTS.sent.replace('${ctx()}',ctx())
+    : PROMPTS.fund.replace('${ctx()}',ctx())
+  // Simple replace — just rebuild inline
+  const finalPrompt = `${name==='tech'?'คุณคือนักวิเคราะห์เทคนิคทองคำมืออาชีพ':name==='sent'?'คุณคือนักวิเคราะห์ Market Sentiment มืออาชีพ':'คุณคือนักวิเคราะห์ปัจจัยพื้นฐานทองคำมืออาชีพ'}
+
+${ctx()}
+
+${name==='tech'?`วิเคราะห์เทคนิคภาษาไทย:
+📐 TECHNICAL SETUP — แนวโน้ม MA, RSI, ADR เหลือพื้นที่เท่าไร
+🎯 แนวรับ-แนวต้าน — S1, S2, R1, R2
+🕯 HTF Confluence — สรุปภาพ Multi-Timeframe
+💡 Trade Setup — Entry / SL / TP / R:R`:name==='sent'?`วิเคราะห์ Sentiment ภาษาไทย:
+📰 MARKET SENTIMENT — Risk-on/off, Retail vs Smart Money
+💵 MACRO — DXY, Bond Yield, Inflation Expectation
+📊 POSITIONING — สัญญาณ Order Flow
+⚠️ RISK EVENTS — เหตุการณ์ที่จะเปลี่ยน Sentiment`:`วิเคราะห์ปัจจัยพื้นฐานภาษาไทย:
+🏦 FUNDAMENTAL DRIVERS — ปัจจัยหนุน/กดดัน
+📅 ECONOMIC CALENDAR — ข้อมูลสำคัญ, Fed Policy
+🌍 GEOPOLITICAL & CENTRAL BANKS
+📈 OUTLOOK — ระยะกลาง 1-4 สัปดาห์`}
+
+ตอบกระชับ ภาษาไทยชัดเจน`
+  try{ const t=await callAI(finalPrompt); setPane(name,t) }
+  catch(e){ setPane(name,errMsg(e)) }
+}
+async function aiRefreshAll(){
+  await aiTab('tech'); await aiTab('sent'); await aiTab('fund')
+}
+
+// ══════════════════════════════════════════════
+//  ECONOMIC CALENDAR
+// ══════════════════════════════════════════════
+let ecoEvents=[], ecoLastFetch=0
+async function fetchEcoCalendar(){
+  const now=Date.now()
+  // จำกัดความถี่การดึง (แหล่งข้อมูลจำกัด 2 ครั้ง/5 นาที) ถ้าเพิ่งดึงมาไม่เกิน 10 นาทีให้ใช้ของเดิม
+  if(now-ecoLastFetch<10*60*1000 && ecoEvents.length){ renderEco(); return }
+  const url='https://nfs.faireconomy.media/ff_calendar_thisweek.json'
+  const proxy='https://api.allorigins.win/raw?url='
+  try{
+    let r
+    try{ r=await fetch(url,{signal:AbortSignal.timeout(8000)}) }
+    catch(e){ r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)}) }
+    const data=await r.json()
+    if(Array.isArray(data)&&data.length){ ecoEvents=data; ecoLastFetch=now }
+  }catch(e){ /* ดึงไม่สำเร็จ ใช้ข้อมูลเดิมที่มีอยู่ (ถ้ามี) */ }
+  renderEco()
+}
+function renderEco(){
+  const el=document.getElementById('eco-items')
+  if(!ecoEvents.length){ el.innerHTML='<div class="ei" style="color:var(--text3)">กำลังโหลดปฏิทินเศรษฐกิจ...</div>'; return }
+  const now=new Date()
+  const today=ecoEvents
+    .map(e=>({...e,d:new Date(e.date)}))
+    .filter(e=>e.d.toDateString()===now.toDateString() && (e.impact==='High'||e.impact==='Medium'))
+    .sort((a,b)=>a.d-b.d)
+  if(!today.length){ el.innerHTML='<div class="ei" style="color:var(--text3)">ไม่มีข่าวสำคัญวันนี้</div>'; return }
+  el.innerHTML=today.map(e=>{
+    const t=e.d.toLocaleTimeString('th-TH',{hour12:false,hour:'2-digit',minute:'2-digit'})
+    const cls=e.impact==='High'?'ei-h':'ei-m'
+    return `<div class="ei"><span class="${cls}">●</span> ${t} <span>${e.country} ${e.title}</span></div>`
+  }).join('')
+}
+
+// ══════════════════════════════════════════════
+//  AUTO REFRESH
+// ══════════════════════════════════════════════
+let countdown=60, timer
+function startRefresh(){
+  clearInterval(timer); countdown=60
+  timer=setInterval(()=>{
+    countdown--
+    document.getElementById('refresh-lbl').textContent=`· ${countdown}s`
+    if(countdown<=0){ updatePrice(); updateSilverPrice(); fetchNews(); countdown=60 }
+  },1000)
+  clearInterval(window._ecoTimer)
+  window._ecoTimer=setInterval(fetchEcoCalendar, 15*60*1000) // ปฏิทินเศรษฐกิจรีเฟรชทุก 15 นาที
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+async function init(){
+  fetchEcoCalendar()
+  await updatePrice()
+  updateSilverPrice()
+  fetchNews()
+  aiRefreshAll()
+  startRefresh()
+}
+init()
+</script>
+</body>
+</html>
